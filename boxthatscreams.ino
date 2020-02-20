@@ -2,9 +2,9 @@
 /*
       Program Screams Data
 
-      Over Serial Pin 2
+      Over Serial Pin One
 
-      But Can You Hear It?
+      Listens on Second
 
 
 
@@ -121,6 +121,12 @@ Adafruit_SSD1306 display(-1);
 // Screen Connects SCL to A4 & SDL to A5
 
 
+
+
+
+
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#### SETUP ####~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup() {
 
@@ -170,10 +176,11 @@ char buff[] = { };  // buffer to hold incoming serial data
 bool invertDisplay = false;
 
 bool serialScream = true;   // if true data is screamed
- byte numberOfBytes = 7;   // number of bytes that will be screamed
+
+byte numberOfBytes = 7;   // number of bytes that will be screamed
 
 
- 
+
 
 char inputString[32];     // specify max length of 32 chars? bytes?
 bool stringComplete;
@@ -181,17 +188,20 @@ bool stringComplete;
 byte byteCount = 0;
 
 
+bool lineChanged = false;   // sets true if a new line has started < bug fix.
+
 
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#### MAIN LOOP ####~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void loop() {
 
-  
+
   // Serial Listening
   serialEvent();
 
-
+  checkLength();         // makes sure there is sufficient room on the screen to print
+  // received message
   // Display Print
   serialPrintout();
   display.display();
@@ -199,14 +209,14 @@ void loop() {
 
   // Serial Printing
 
-if (serialScream){
-  
-  for (int i = 0; i < 7; i++) { 
-  //  Serial.print(charArray[i]);
-    Serial.print(arrayEight[i]);
+  if (serialScream) {
+
+    for (int i = 0; i < 7; i++) {
+      //  Serial.print(charArray[i]);
+      Serial.print(arrayEight[i]);
+    }
+    Serial.println(" ");
   }
-  Serial.println(" ");
-}
 
 
 
@@ -267,27 +277,39 @@ void serialEvent() {
 
 
 void serialPrintout() {
-  
+
   if (stringComplete) {
 
     display.setCursor(cursorX, cursorY);
 
+  //  Serial.print(cursorX);
+
+ //   Serial.print("   ");
+
+  //  Serial.println(cursorY);
+
     removeDot();
 
-   // display.print(" ");
+    // display.print(" ");
 
     for (int i = 0; i < strLength; i++) {
 
       //   Serial.print(i);
       //  Serial.print(inputString[i]);
       display.print(inputString[i]);
-        cursorX = cursorX + 5;
+      cursorX = cursorX + 6;
       cursorManage();
     }
 
     // cursorManage();
     //  Serial.println(cursorX);
-   // display.print(" ");
+    // display.print(" ");
+
+    if (lineChanged) {
+      cursorX = cursorX + 6;
+      lineChanged = false;
+    }
+    
     drawDot();   // actually draws square like a boss
     cursorManage();       // this makes sure a new line is started if drawn box is off the page
 
@@ -312,13 +334,13 @@ byte lastY;
 // Function to draw a dot in the space waiting for new data
 void drawDot() {
 
- // cursorX = cursorX + 1;
+  // cursorX = cursorX + 1;
   display.drawRect(cursorX, cursorY, 5, 8, WHITE); // – plot a pixel in the x,y coordinates
   lastX = cursorX;
   lastY = cursorY;
   boxDrawn = true;
 
- // cursorX = cursorX - 1;
+  // cursorX = cursorX - 1;
 }
 
 
@@ -337,6 +359,36 @@ void removeDot() {                           /// actually removes square like a 
 
 
 
+// Check to see if strLength is longer than the remaining character spaces on the screen
+
+void checkLength() {
+  //int lengthSpare = 128 - (cursorX + strLength);
+  if (cursorY >= 24) {
+    if ((strLength + cursorX) > 129);
+    resetDisplay(true);
+  }
+}
+
+
+
+void resetDisplay(bool invertActive) {
+
+  display.clearDisplay();
+  cursorY = 0;
+  cursorX = 0;  // reset cursors
+
+  if (invertActive)
+    if (invertDisplay) {                       // invert display for fun and for profit.ffff
+
+
+      invertDisplay = false;
+      display.invertDisplay(false);
+    } else if (!invertDisplay)  {
+      invertDisplay = true;
+      display.invertDisplay(true);
+    }
+
+}
 
 
 
@@ -350,7 +402,6 @@ void cursorManage() {
   // Cursor Management
 
 
-
   // Serial.println(cursorX);
 
   if (cursorX >= 128) {
@@ -359,21 +410,13 @@ void cursorManage() {
 
     cursorX = 0;
 
+    lineChanged = true;
+
     if (cursorY >= 32) {     // reached end of screen so wipe completely
 
-      display.clearDisplay();
-      cursorY = 0;
-      cursorX = 0;  // reset cursors
-
-      if (invertDisplay) {                       // invert display for fun and for profit.ffff
+      resetDisplay(true);
 
 
-        invertDisplay = false;
-        display.invertDisplay(false);
-      } else if (!invertDisplay)  {
-        invertDisplay = true;
-        display.invertDisplay(true);
-      }
     }
   }
 
