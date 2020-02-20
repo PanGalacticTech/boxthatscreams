@@ -169,83 +169,58 @@ char buff[] = { };  // buffer to hold incoming serial data
 
 bool invertDisplay = false;
 
+bool serialScream = true;   // if true data is screamed
+ byte numberOfBytes = 7;   // number of bytes that will be screamed
+
+
+ 
+
+char inputString[32];     // specify max length of 32 chars? bytes?
+bool stringComplete;
+
+byte byteCount = 0;
+
+
+
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#### MAIN LOOP ####~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void loop() {
 
-
-
-  int sizeofArray = sizeof(charArray);    // / sizeof(char);   // returns number of characters in array
-  // int sizeofArray = sizeof(printWord) / 2;   // returns number of characters in array
-
-
-  // Serial.println(sizeofArray);                           // Test print
-
-
-
-  display.setCursor(cursorX, cursorY);
-
-
+  
+  // Serial Listening
   serialEvent();
 
+
+  // Display Print
   serialPrintout();
-
-
-
-
-  for (int i = 0; i < sizeofArray; i++) {
-    //  display.print(charArray[i]);
-    //  Serial.print(charArray[i]);
-  }
-
-
-
-  //Serial.println(" ");
-
-
-  // display.print(*printWord);
-
   display.display();
 
 
-  // Serial.println(" ");
+  // Serial Printing
 
-
-
-
-
-  // cursorX = cursorX + (sizeofArray) * 8; // moves the cursor the length of the char array
-
-  if (cursorX >= 128) {
-
-    cursorY = cursorY + 8;
-
-    cursorX = 0;
-
-    if (cursorY >= 32) {     // reached end of screen so wipe completely
-
-      cursorY = 0;
-
-      display.clearDisplay();
-
-      if (invertDisplay) {
-        invertDisplay = false;
-        display.invertDisplay(false);
-      } else if (!invertDisplay)  {
-        invertDisplay = true;
-        display.invertDisplay(true);
-      }
-
-
-
-    }
+if (serialScream){
+  
+  for (int i = 0; i < 7; i++) { 
+  //  Serial.print(charArray[i]);
+    Serial.print(arrayEight[i]);
   }
+  Serial.println(" ");
+}
+
+
 
 } //____________________________________________________ End of Void Loop __________________________________________
 
-char inputString[] = {};
-bool stringComplete;
 
-byte byteCount;
+
+
+
+
+
+
+
+byte strLength;
 
 /*
   SerialEvent occurs whenever a new data comes in the hardware serial RX. This
@@ -260,56 +235,147 @@ void serialEvent() {
     // get the new byte:
     char inChar = (char)Serial.read();
 
-    //   Serial.print(inChar);
-    display.print(inChar);
+    //  Serial.print(inChar);
+    //  display.print(inChar);
+
+    //  Serial.print("  byteCount: ");
+    //   Serial.println(byteCount);
+
     // add it to the inputString:
     inputString[byteCount] = inChar;
 
 
-    Serial.println(byteCount);
+
     byteCount++;                                           // if the incoming character is a newline, set a flag so the main loop can
 
-    cursorX = cursorX + 8;
+    //  cursorX = cursorX + 6;
+
+    strLength = byteCount;
 
     // do something about it:
-    if (inChar == '\n') {
+    if (inChar == '\n' or byteCount >= 32) {         // if null character reached or buffer is filled, then string is completed
       stringComplete = true;
-      drawDot();
+      byteCount = 0;
+
     }
   }
 }
 
 
+
+//---------------------------------Print Serial Data to Screen
+
+
 void serialPrintout() {
-
+  
   if (stringComplete) {
-    //Serial.print("String Length: ");
-    //Serial.println(sizeof(inputString));
 
-    Serial.print("byteCount: ");
+    display.setCursor(cursorX, cursorY);
 
-    Serial.println(byteCount);
+    removeDot();
 
+   // display.print(" ");
 
-    for (int i = 0; i > sizeof(inputString); i++) {
+    for (int i = 0; i < strLength; i++) {
 
-      Serial.print(inputString[i]);
-
+      //   Serial.print(i);
+      //  Serial.print(inputString[i]);
+      display.print(inputString[i]);
+        cursorX = cursorX + 5;
+      cursorManage();
     }
+
+    // cursorManage();
+    //  Serial.println(cursorX);
+   // display.print(" ");
+    drawDot();   // actually draws square like a boss
+    cursorManage();       // this makes sure a new line is started if drawn box is off the page
+
 
     stringComplete = false;
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+bool boxDrawn = false;
 byte lastX;
 byte lastY;
 // Function to draw a dot in the space waiting for new data
 void drawDot() {
 
- display.drawRect(lastX, lastY, 8, 8, BLACK);
-    display.drawRect(cursorX, cursorY, 8, 8, WHITE); // – plot a pixel in the x,y coordinates
+ // cursorX = cursorX + 1;
+  display.drawRect(cursorX, cursorY, 5, 8, WHITE); // – plot a pixel in the x,y coordinates
+  lastX = cursorX;
+  lastY = cursorY;
+  boxDrawn = true;
 
-lastX = cursorX;
-lastY = cursorY;
+ // cursorX = cursorX - 1;
+}
+
+
+
+
+void removeDot() {                           /// actually removes square like a boss
+
+  if (boxDrawn) {
+    display.drawRect(lastX, lastY, 5, 8, BLACK);
+    boxDrawn = false;
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+void cursorManage() {
+
+
+  // cursorX = cursorX + (sizeofArray) * 8; // moves the cursor the length of the char array
+
+  // Cursor Management
+
+
+
+  // Serial.println(cursorX);
+
+  if (cursorX >= 128) {
+
+    cursorY = cursorY + 8;
+
+    cursorX = 0;
+
+    if (cursorY >= 32) {     // reached end of screen so wipe completely
+
+      display.clearDisplay();
+      cursorY = 0;
+      cursorX = 0;  // reset cursors
+
+      if (invertDisplay) {                       // invert display for fun and for profit.ffff
+
+
+        invertDisplay = false;
+        display.invertDisplay(false);
+      } else if (!invertDisplay)  {
+        invertDisplay = true;
+        display.invertDisplay(true);
+      }
+    }
+  }
+
 
 }
