@@ -363,7 +363,7 @@ void removeDot() {                           /// actually removes square like a 
 
 void checkLength() {
   //int lengthSpare = 128 - (cursorX + strLength);
-  if (cursorY >= 24) {
+  if (cursorY >= 32) {
     if ((strLength + cursorX) > 129);
     resetDisplay(true);
   }
