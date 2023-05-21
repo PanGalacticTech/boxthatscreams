@@ -3,19 +3,119 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Menu Pages ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+
+
+
+// Menu Constants
+
+// Full Lines
+const char           menuTitle[23] = {" Menu                "};
+
+
+// Page 0
+
+// Half Lines
+const char      menuShortTitle[13] = {"Menu        "};
+
+const char    serialScreamMenu[13] = {" ScreamData "};
+const char        baudRateMenu[13] = {"   BaudRate "};
+const char      dataStringMenu[13] = {"Data Output "};
+
+
+
+
+// Variable Lines
+
+const char            True[10] = {"    True "};
+const char           False[10] = {"   False "};
+const char            Null[10] = {"         "};
+
+const char            Save[10] = {"    Save "};
+const char            Back[10] = {"    Back "};
+const char            Exit[10] = {"    Exit "};
+
+const char       baud9600T[10] = {"    9600 "};
+const char      baud19200T[10] = {"   19200 "};
+const char     baud115200T[10] = {"  115200 "};
+
+char *baudRatesText[4] = {baud9600T, baud19200T, baud115200T};
+
+
+// Page 1 - Data Output Type
+
+const char      dataTitle[13] = {"Data Output "};
+
+const char     screamDelayMenu[13] = {"ScreamDelay "};
+const char   numberOfBytesMenu[13] = {"No. Bytes   "};
+const char        dataTypeMenu[13] = {"Data type   "};
+
+
+// Page One Numbers as Char Strings
+
+char        screamDelayChar[10] = {"         "};
+char          noOfBytesChar[10] = {"         "};
+
+// Page 1 Variables
+
+const char           Text[10] = {"     Text"};
+const char        Numbers[10] = {"  Numbers"};
+const char     NumberText[10] = {"Numb&Text"};
+
+const char          uint8[10] = {"  uint8_t"};
+const char         uint16[10] = {" uint16_t"};
+const char          int16[10] = {"  int16_t"};
+const char         uint32[10] = {" uint32_t"};     //
+const char          int32[10] = {"  int32_t"};
+const char         floatT[10] = {"    float"};
+const char          charT[10] = {"     char"};
+const char        structT[10] = {"   Struct"};
+
+char *dataTypesText[12] = {Text, Numbers, NumberText, uint8, uint16, int16, uint32, int32, floatT, charT, structT};
+
+
+
+
+
+
+
 /*
 
+  uint8_t byteOne = 0;  // a single byte
 
-char    inversionHeading[23] = {"Control Inversions   "};
+  uint16_t intTwo = 0;   // a single unsigned int
 
-char rocketInvertHeading[23] = {"Rocket               "};
-char  planeInvertHeading[23] = {"Plane                "};
-char  roverInvertHeading[23] = {"Rover                "};
+  int16_t intThree = 0;    // a single signed int
 
-char          invertTrue[10] = {"  True    "};
-char         invertFalse[10] = {"  False   "};
-char          invertNull[10] = {"          "};
+  uint32_t intFour = 0;   // a single unsigned long
 
+  int32_t intFive = 0;    // a single signed long
+
+  float floatSix = 0.0;     // a float value
+
+
+
+*/
+
+
+
+
+
+const char            lineWipe[23] = {"                     "};  // used to wipe old messages line by line
+
+
+//############################## Empty Screen Buffers #########################################################
+char oledLine0[23] = {"                     "}; // Title / Page   // 128 pixles, 5/6 pxl per character
+char oledLine1[23] = {"                     "}; //  SAS/RCS Status
+char oledLine2[23] = {"                     "}; //  Action triggered or SAS heading
+char oledLine3[23] = {"                     "}; //  Staging
+
+
+// Previous Screen Buffers;
+char PoledLine0[23];
+char PoledLine1[23];
+char PoledLine2[23];
+char PoledLine3[23];
+//############################## Empty Screen Buffers #########################################################
 
 int numberOfItems = 3;    //Number of items on any menu page
 
@@ -23,10 +123,18 @@ int lineAdjust;    // This variable makes sure correct line is highlighted on OL
 
 //bool inversionAdjusted = false; // variable goes true on making an edit to control inversions. Triggers  controlsUnassigned = true to run controls assigned when page navigates away from control inverts;
 
+int pageNumber = 0;
+int itemNumber = 0;
+
+int previousPage;
+
+
+
+
 
 void staticMenu() {                     // Function to replace the OLED buffer with the page information, based on pagenumber
 
-  // Serial.println(pageNumber);
+  //  Serial.println(itemNumber);
 
   // Clear the text buffer if page number has changed, before printing new pages
   if (previousPage != pageNumber) {
@@ -38,128 +146,65 @@ void staticMenu() {                     // Function to replace the OLED buffer w
   }
 
   if (pageNumber == 0) {                                                            // Page 0 = Kerbal Space Program Homepage
-
-    itemNumber = 0;   /// bug fix sets itemNumber as always 0 on page 1
-
-    messageReplace(0 , kerbalTitle);
-
-    /*
-        if (previousPage != pageNumber) {
-          messageReplace(0 , lineWipe);   // recently addedm remove if problems occur
-          messageReplace(1 , lineWipe);
-          messageReplace(2 , lineWipe);
-          messageReplace(3 , lineWipe);
-
-        }
-    */
-
-/*
-  }
-  if (pageNumber == 1) {                                        // Page 1 = Settings Page
     numberOfItems = 3;
-    messageReplace(0 , settingsTitle);
-    messageReplace(1 , setJoysticks);                   // change to set rotations
-    messageReplace(2 ,  setInverts);                       // change to set control inversions
-    messageReplace(3 , setCalibrate);                     // activate calibration
+    //  itemNumber = 0;   /// bug fix sets itemNumber as always 0 on page 1
 
+    lineDualreplace(0, menuShortTitle, Exit);
+
+    if (serialScream) {
+      lineDualreplace(1, serialScreamMenu, True);
+    } else {
+      lineDualreplace(1, serialScreamMenu, False);
+    }
+
+    lineDualreplace(2, baudRateMenu, baudRatesText[baudRateSelection]);
+
+    lineDualreplace(3,  dataStringMenu, 0);
   }
-  if (pageNumber == 2) {                                                     // Page 2 = INVERSIONS Page
+
+  if (pageNumber == 1) {                                        // Page 1 = Data Specifics Page
     numberOfItems = 3;
-    messageReplace(0 , inversionHeading);
-    messageReplace(1 , rocketInvertHeading);                   //
-    messageReplace(2 , planeInvertHeading);                       //
-    messageReplace(3 , roverInvertHeading);                     //
 
-  }
-  if (pageNumber == 3) {                                                     // Page 3 = Rocket Control Inverts
+    lineDualreplace(0, dataTitle, Exit);
 
-    // messageReplace(1 , lineWipe);                                           //
-    //  messageReplace(2 , lineWipe);                                                 //            outputNames[9]
-    // messageReplace(3 , lineWipe);
+    // Line here to copy screamDelay into a char string //screamDelayChar
 
-    messageReplace(0 , rocketInvertHeading);                                        /// rocketInvertArray[]
+    sprintf(screamDelayChar, "  %d uS", screamDelay);     // %d   = signed int   %u = unsigned int %c = character
 
-    numberOfItems = 6;
-    for (int i = 0; i < 3; i++) {
-      if (itemNumber <= 3) {
-        if (rocketInvertArray[i] == true) {
-          lineDualreplace(i + 1 , outputNames[i],  invertTrue);
-        } else {
-          lineDualreplace(i + 1 , outputNames[i], invertFalse);
-        }
-      } else if (itemNumber > 3) {
-        if (rocketInvertArray[i + 3] == true) {
-          lineDualreplace(i + 1 , outputNames[i + 3],  invertTrue);
-        } else {
-          lineDualreplace(i + 1 , outputNames[i + 3], invertFalse);
-        }
+
+    if (screamDelay < 1000) {
+
+      for (int i = 9; i > 0; i--) {     // move the characters along the string
+
+        screamDelayChar[i] = screamDelayChar [i - 1];
+
       }
-
+      screamDelayChar[2] = {'0'};
     }
-  }
-  if (pageNumber == 4) {                                                     // Page 4 = Plane Control Inverts
 
+    if (screamDelay == 0) {
 
-    messageReplace(0 , planeInvertHeading);
-    numberOfItems = 6;
-    for (int i = 0; i < 3; i++) {
-      if (itemNumber <= 3) {
-        if (planeInvertArray[i] == true) {
-          lineDualreplace(i + 1 , outputNames[i],  invertTrue);
-        } else {
-          lineDualreplace(i + 1 , outputNames[i], invertFalse);
-        }
-      } else if (itemNumber > 3) {
-        if (planeInvertArray[i + 3] == true) {
-          lineDualreplace(i + 1 , outputNames[i + 3],  invertTrue);
-        } else {
-          lineDualreplace(i + 1 , outputNames[i + 3], invertFalse);
-        }
-      }
-
+      sprintf(screamDelayChar, "  0000 uS");
     }
 
 
+    lineDualreplace(1, screamDelayMenu, screamDelayChar);
+
+
+    // Line here to copy number of bytes into a char string //
+
+    sprintf(noOfBytesChar, "     %d  ", numberOfBytes);
+
+
+    lineDualreplace(2, numberOfBytesMenu, noOfBytesChar);
+    lineDualreplace(3, dataTypeMenu, dataTypesText[dataSelection]);
   }
-  if (pageNumber == 5) {                                                     // Page 5 = Rover Control Inverts
 
-
-    messageReplace(0 , roverInvertHeading);
-    numberOfItems = 9;
-
-    for (int i = 0; i < 3; i++) {
-      if (itemNumber <= 3) {
-        if (roverInvertArray[i] == true) {
-          lineDualreplace(i + 1 , outputNames[i],  invertTrue);
-        } else {
-          lineDualreplace(i + 1 , outputNames[i], invertFalse);
-        }
-      } else if (itemNumber > 3 && itemNumber <= 6) {
-        if (roverInvertArray[i + 3] == true) {
-          lineDualreplace(i + 1 , outputNames[i + 3],  invertTrue);
-        } else {
-          lineDualreplace(i + 1 , outputNames[i + 3], invertFalse);
-        }
-      } else if (itemNumber > 6 && itemNumber <= 8) {
-        if (roverInvertArray[i + 6] == true) {
-          lineDualreplace(i + 1 , outputNames[i + 6],  invertTrue);
-        } else  {
-          lineDualreplace(i + 1 , outputNames[i + 6], invertFalse);
-        }
-      }
-
-      //else if (itemNumber > 8) {
-      //   lineDualreplace(i + 1 , outputNames[i + 6], invertNull);
-      //  }
-
-    }
-
-
-  }
+  
 
 
   previousPage = pageNumber;
-  // screenUpdate = true;
+
 
 }
 
@@ -174,74 +219,64 @@ void staticMenu() {                     // Function to replace the OLED buffer w
 
 void itemNav() {   // Function to select active ITEM NUMBER
 
-  // Serial.println("    ");
-  // Serial.println(pageNumber);
-  //  Serial.println(planeInvertHeading);
-  // Serial.println(pageScroll);
-  // Serial.println("    ");
 
 
-  // Could add in IF statement for if pageNumber > 0, else itemNumber = 0
-  // single click to get to settings menu.
+  if (pageNumber >= 0) {
 
-  if (pageNumber > 0) {
+    if (itemNumber > numberOfItems) {
 
-    if (pageScroll == false) {                 // If Menu Heading item is selected, scroll through pages
-      if (millis() - lastRotaryfire >= rotaryTimeout) {
+      itemNumber = 0;
 
-        if (rotaryCount > prevCount) {
+    } else if (itemNumber < 0) {
 
-          itemNumber++;
-
-        }
-
-        else if (rotaryCount < prevCount) {
-          itemNumber--;
-
-        }
-      }
-
-      if (itemNumber > numberOfItems) {
-
-        itemNumber = 0;
-
-      } else if (itemNumber < 0) {
-
-        itemNumber = numberOfItems;
-
-      }
-
-      if (itemNumber <= 3) {
-        lineAdjust = itemNumber;
-        display.fillRoundRect(120, 8 * (itemNumber - 4), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
-        display.fillRoundRect(120, 8 * itemNumber, 8, 8, 2, WHITE); //(x , y, width, height, cornerRadius, color)
-        display.fillRoundRect(120, 8 * (itemNumber + 1), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
-
-      } else if (itemNumber > 3 && itemNumber <= 6) {
-
-        lineAdjust = itemNumber - 3;
-
-        display.fillRoundRect(120, 8 * (lineAdjust - 4), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
-        display.fillRoundRect(120, (8 * lineAdjust), 8, 8, 2, WHITE); //(x , y, width, height, cornerRadius, color)
-        display.fillRoundRect(120, 8 * (lineAdjust + 1), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
-
-      } else if (itemNumber > 6) {
-
-        lineAdjust = itemNumber - 6;
-
-        display.fillRoundRect(120, 8 * (lineAdjust - 4), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
-        display.fillRoundRect(120, (8 * lineAdjust), 8, 8, 2, WHITE); //(x , y, width, height, cornerRadius, color)
-        display.fillRoundRect(120, 8 * (lineAdjust + 1), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
-      }
-
-
-      //  screenUpdate = true;
+      itemNumber = numberOfItems;
 
     }
 
+
+    if (itemChanged) {
+      lineColours[itemNumber] = 0;    // added line
+      lineColours[itemNumber - 1] = 1;    // added line
+      if (itemNumber == 0) {                     // bug fix. clunky but should work, this turns off line 3 white bar as item number rolls over
+        lineColours[3] = 1;
+      }
+
+      screenUpdate = true;
+      itemChanged = false;
+    }
+
+    if (itemNumber <= 3) {
+      lineAdjust = itemNumber;
+      display.fillRoundRect(120, 8 * (itemNumber - 4), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
+      display.fillRoundRect(120, 8 * itemNumber, 8, 8, 2, WHITE); //(x , y, width, height, cornerRadius, color)
+      display.fillRoundRect(120, 8 * (itemNumber + 1), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
+
+    } else if (itemNumber > 3 && itemNumber <= 6) {
+
+      lineAdjust = itemNumber - 3;
+
+      display.fillRoundRect(120, 8 * (lineAdjust - 4), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
+      display.fillRoundRect(120, (8 * lineAdjust), 8, 8, 2, WHITE); //(x , y, width, height, cornerRadius, color)
+      display.fillRoundRect(120, 8 * (lineAdjust + 1), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
+
+    } else if (itemNumber > 6) {
+
+      lineAdjust = itemNumber - 6;
+
+      display.fillRoundRect(120, 8 * (lineAdjust - 4), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
+      display.fillRoundRect(120, (8 * lineAdjust), 8, 8, 2, WHITE); //(x , y, width, height, cornerRadius, color)
+      display.fillRoundRect(120, 8 * (lineAdjust + 1), 8, 32, 2, BLACK); //(x , y, width, height, cornerRadius, color)
+    }
+
+
+    //  screenUpdate = true;
+
+
+
   } else {
-    itemNumber = 0;
-    lineAdjust = itemNumber;  // bug fix
+    // itemNumber = 0;
+    // lineAdjust = itemNumber;  // bug fix
+
   }
 } //--------------------------
 
@@ -249,8 +284,9 @@ void itemNav() {   // Function to select active ITEM NUMBER
 
 
 
-
-
+bool itemSelected;       // if button has been pressed while in menu
+bool serialChanged;       // Serial Settings have been changed, sets flag to reset serial output with new settings.
+bool serialPause;       // flag to set serial as paused rather than just turned off in menu
 
 // Selection scrip for menu items
 
@@ -258,71 +294,154 @@ void itemNav() {   // Function to select active ITEM NUMBER
 
 void itemSelect() {         // script for triggering actions based on menu item selected.   // generate bools, then use bools to trigger actions elsewhere
 
+
+
   if (itemSelected) {                          // if the rotary button has been clicked
 
+    //  Serial.println("item selected");
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Page 1 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if (pageNumber == 1) {            // Page 1 settings
+    if (pageNumber == 0) {            // Page 1 settings
 
+      if (itemNumber == 0) {                 // item 0, Close Menu
 
-      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 2 ###~~~~~~~~~~~~~~~~~~~~~~~~ INVERSION SELECT ~~~~~~
-
-      if (itemNumber == 2) {                 // item 2, Inversion Setup
-        pageNumber = 2;                        // if item number 2 is selected, navigate to page 2
-        pageScroll = false;              // sets this ready to scroll through menu items again
-        itemNumber = 1;                       // Set item back to 1, this makes it feel much more natural.
+       // saveSettings();                       // save the settings
+        menuActive = false;
+        screenWipe = true;
+        serialRestart();                   // this restarts serial if baud rate has been changed.
         itemSelected = false;           // This resets the rotary Button push, ready for retrigger
         //  pageScroll = false;              // sets this ready to scroll through menu items again
-        lineColours[2] = 1;                     // Resets line colour  << Eventually this could be done right at end of routein, It depends on if it works with others
+        //  lineColours[1] = 1;                     // Resets line colour  << Eventually this could be done right at end of routein, It depends on if it works with others
       }
 
+
+
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 1 ###~~~~~~~~~~~~~~~~~~~~~~~~ Scream Data SELECT ~~~~~~
+
+      if (itemNumber == 1) {                 // item 1,
+
+        if (serialScream) {
+          serialScream = false;
+        } else {
+          serialScream = true;
+        }
+
+        itemSelected = false;           // This resets the rotary Button push, ready for retrigger
+        //  pageScroll = false;              // sets this ready to scroll through menu items again
+        //  lineColours[1] = 1;                     // Resets line colour  << Eventually this could be done right at end of routein, It depends on if it works with others
+      }
+
+
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item Baud Rate ###~~~~~~~~~~~~~~~~~~~~~~~~
+
+      if (itemNumber == 2) {                 // item 2, Baud Rate
+
+        baudRateSelection++;
+
+        if (baudRateSelection >= 3) {
+          baudRateSelection = 0;
+        }
+        Serial.print("Serial baudrate: ");
+        Serial.println(baudRates[baudRateSelection]);
+        Serial.println("Settings applied on menu exit...");
+
+        if (serialScream) {
+          serialPause = true;
+          serialScream = false;   // pauses serial output mostly to help with debugging
+        }
+
+
+
+        serialChanged = true;
+        itemSelected = false;           // This resets the rotary Button push, ready for retrigger
+        //      pageScroll = false;              // sets this ready to scroll through menu items again
+        // lineColours[2] = 1;                     // Resets line colour  << Eventually this could be done right at end of routein, It depends on if it works with others
+      }
 
       //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 3 ###~~~~~~~~~~~~~~~~~~~~~~~~
 
-      if (itemNumber == 3) {                 // item 3, Calibration
-        calibrationCall();                         // Call calibration script
+      if (itemNumber == 3) {                 // item 3, Data Output
+        pageNumber = 1;                        //
+        itemNumber = 0;
+        screenWipe = true;
+        // screenClear();                      // clear the screen if flag has been set
         itemSelected = false;           // This resets the rotary Button push, ready for retrigger
-        pageScroll = false;              // sets this ready to scroll through menu items again
+        //      pageScroll = false;              // sets this ready to scroll through menu items again
         lineColours[3] = 1;                     // Resets line colour  << Eventually this could be done right at end of routein, It depends on if it works with others
       }
     }   //###~~~~~~~ End of Page 1 ~~~~~~~~~###
+    //  }
+
   }
 
-
-  if (itemSelected) {
+  if (itemSelected) {                          // if the rotary button has been clicked This line needs reiterating, otherwise it has a broken loop
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Page 2 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if (pageNumber == 2) {            // Page 2 Inversions
+    if (pageNumber == 1) {            // Page 2 Inversions
 
-      if (itemNumber == 0) {              // back
+      if (itemNumber == 0) {              // go back
 
-        pageNumber = 1;
-
+        pageNumber = 0;
+        itemSelected = false;
       }
 
 
-      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 1 ###~~~~~~~~~~~~~~~~~~~~~~~~
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 1 - Scream Delay ###~~~~~~~~~~~~~~~~~~~~~~~~
       if (itemNumber == 1) {
-        pageNumber = 3;                        // Rocket Mode go to page 3
-        pageScroll = false;              // sets this ready to scroll through menu items again
+        // Rocket Mode go to page 3
+        //     pageScroll = false;              // sets this ready to scroll through menu items again
+
+
+
+        //  screamDelayTenths = screamDelayTenths + 2;
+
+        //  if (screamDelayTenths > 6) {
+        //     screamDelaySeconds++;
+        //    screamDelayTenths = 0;
+        //   }
+
+        //   if (screamDelaySeconds >= 9) {
+        //     screamDelaySeconds = 0;
+        //     screamDelayTenths = 0;
+        //   }
+
+        screamDelay = screamDelay + 200;
+
+        if (screamDelay >= 6200) {
+
+          screamDelay = 0;
+        }
+
+
         itemSelected = false;
-        lineColours[1] = 1;                     // Resets lin
+        //  lineColours[1] = 1;                     // Resets lin
       }
-      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 2 ###~~~~~~~~~~~~~~~~~~~~~~~~
+
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 2 - Number of Bytes ###~~~~~~~~~~~~~~~~~~~~~~~~
       if (itemNumber == 2) {
-        pageNumber = 4;                        // Plane Mode go to page 4
-        pageScroll = false;              // sets this ready to scroll through menu items again
+
+        //      pageScroll = false;              // sets this ready to scroll through menu items again
+
+        numberOfBytes++;
+
+        if (numberOfBytes > 8) {
+          numberOfBytes = 1;
+        }
         itemSelected = false;
-        lineColours[2] = 1;
-        itemNumber = 1;                       // Set item back to 1, this makes it feel much more natural.
       }
 
       //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Item 3 ###~~~~~~~~~~~~~~~~~~~~~~~~
       if (itemNumber == 3) {
-        pageNumber = 5;                        // Rover Mode go to page 3
-        pageScroll = false;              // sets this ready to scroll through menu items again
+
+        dataSelection++;
+
+        if (dataSelection >= 11) {
+          dataSelection = 0;
+        }
+
         itemSelected = false;
-        lineColours[3] = 1;
-        itemNumber = 1;                       // Set item back to 1, this makes it feel much more natural.
+        //   lineColours[3] = 1;
+
       }
 
     }
@@ -330,81 +449,8 @@ void itemSelect() {         // script for triggering actions based on menu item 
   } //###~~~~~~~ End of Page 2 ~~~~~~~~~###
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Page 3  Rocket Inversions ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (itemSelected) {
 
-    if (pageNumber == 3) {            // Page 3 Rocket Control Inversion
-
-      if (itemNumber == 0) {           // back button
-
-        pageNumber = 2;
-
-      }
-
-      if (rocketInvertArray[itemNumber - 1] == true) {
-        rocketInvertArray[itemNumber - 1] = false ;
-      } else {
-        rocketInvertArray[itemNumber - 1] = true ;
-      }
-      controlsUnassigned = true;     // triggers controls reassign
-      pageScroll = false;
-      itemSelected = false;
-      lineColours[lineAdjust] = 1;
-
-    }
-  }   //###~~~~~~~ End of Page 3 ~~~~~~~~~###
-
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Page 4 Plane Inversions ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (itemSelected) {
-
-    if (pageNumber == 4) {            // Page 3 Rocket Control Inversion
-
-      if (itemNumber == 0) {           // back button
-
-        pageNumber = 2;
-
-      }
-
-      if (planeInvertArray[itemNumber - 1] == true) {
-        planeInvertArray[itemNumber - 1] = false ;
-      } else {
-        planeInvertArray[itemNumber - 1] = true ;
-      }
-      controlsUnassigned = true;     // triggers controls reassign
-      pageScroll = false;
-      itemSelected = false;
-      lineColours[lineAdjust] = 1;
-
-    }
-  }   //###~~~~~~~ End of Page 4~~~~~~~~~###
-
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~### Page 5 Rover Inversions ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (itemSelected) {
-
-    if (pageNumber == 5) {            // Page 3 Rocket Control Inversion
-
-      if (itemNumber == 0) {           // back button
-
-        pageNumber = 2;
-
-      }
-
-      if (roverInvertArray[itemNumber - 1] == true) {
-        roverInvertArray[itemNumber - 1] = false ;
-      } else {
-        roverInvertArray[itemNumber - 1] = true ;
-      }
-      controlsUnassigned = true;     // triggers controls reassign
-      pageScroll = false;
-      itemSelected = false;
-      lineColours[lineAdjust] = 1;
-
-    }
-  }   //###~~~~~~~ End of Page 4~~~~~~~~~###
 
 
 
 } // End of item Select Script
-
-
-
-*/

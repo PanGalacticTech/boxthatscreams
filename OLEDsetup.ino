@@ -7,6 +7,7 @@
 int pxWidth = 120;
 int pxHeight = 30;
 
+/*
 // 'Pan Galactic Smol Logo Bitmap Solid2', 120x30px
 const unsigned char panLogo [] PROGMEM = {
   0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x03, 0xfe, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,
@@ -40,23 +41,29 @@ const unsigned char panLogo [] PROGMEM = {
   0x00, 0x00
 };
 
+*/
 
 
 
+bool test_allocation = true;
 
 
-
-
-void OLEDsetupSimple(){
+void OLEDsetupSimple() {
 
   //  Serial.begin(115200);  //
   //Serial.begin(9600);
 
   // Dont know what this does
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;); // Don't proceed, loop forever
+
+  while (test_allocation) {
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
+      Serial.println(F("SSD1306 allocation failed"));
+      // for (;;); // Don't proceed, loop forever
+    } else {
+      test_allocation = false;
+    }
+
   }
 
 
@@ -75,66 +82,19 @@ void OLEDsetupSimple(){
   // Clear the buffer.
   display.clearDisplay();
 
-  
-  
-//display.setFont(&FreeMonoBold12pt7b); 
-//display.setFont(&FreeSansBold12pt7b);
+
 
 
 
   // Draw bitmap on the screen
   // 'Pan Galactic Smol Logo Bitmap', 127x45px // panLogo
-  display.drawBitmap(4, 1, panLogo, pxWidth, pxHeight, 1);  //(x , y bitMap, width, height, color)
+ // display.drawBitmap(4, 1, panLogo, pxWidth, pxHeight, 1);  //(x , y bitMap, width, height, color)
   display.display();
- // delay(2000);
-  delay(500); 
-  delay(500);
- display.invertDisplay(true);
-  delay(500);
-//  display.invertDisplay(false);
-//  delay(500);
-//  display.invertDisplay(true);
- // delay(1000);
+  delay(400);
+  display.invertDisplay(true);
+  delay(200);
   display.invertDisplay(false);
-
-
-
-  // Set Analogue outputs
-
-  //pinMode(ledR, OUTPUT);
-  // pinMode(ledG, OUTPUT);
-  //  pinMode(ledB, OUTPUT);
-
-
-  /*
-    // Added from user comments:
-    pinMode(encoder0PinA, INPUT);
-    digitalWrite(encoder0PinA, HIGH); // turn on pull-up resistor
-    pinMode(encoder0PinB, INPUT);
-    digitalWrite(encoder0PinB, HIGH); // turn on pull-up resistor
-  */
-
-
-  // pinMode(encoderButton, INPUT);
-  // digitalWrite(encoderButton, HIGH); // turn on pull-up resistor
-
-
-  //------------------------Alternative to lines above from stackexchange---------------------------------------
-  //  pinMode (encoderPinA, INPUT_PULLUP);     // enable pull-ups
-  // pinMode (encoderPinB, INPUT_PULLUP);
-  // attachInterrupt (digitalPinToInterrupt (encoderPinA), isr, CHANGE);   // interrupt 0 is pin 2
-
-
- //pinMode(encoderButton, INPUT);
-//  digitalWrite(encoderButton, HIGH); // turn on pull-up resistor
-
-
-  //------------------------Alternative to lines above from stackexchange---------------------------------------
- // pinMode (encoderPinA, INPUT_PULLUP);     // enable pull-ups
- // pinMode (encoderPinB, INPUT_PULLUP);
-// pinMode (encoderPinA, INPUT);
-//  pinMode (encoderPinB, INPUT);
- // attachInterrupt (digitalPinToInterrupt (encoderPinA), isr, CHANGE);   // interrupt 0 is pin 2
+  delay(200);
 
 
 
