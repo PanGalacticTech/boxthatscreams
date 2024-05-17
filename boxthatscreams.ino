@@ -71,7 +71,7 @@ uint8_t lastInput = 0;   // stores last inputValue to the fibbonacci machine.
 
   Created by Pan Galactic Tech
 
-  17/12/2019 Declan James
+  17/12/2019 Imogen Wren
 
 
 */
